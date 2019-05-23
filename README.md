@@ -1,11 +1,8 @@
-# ArgyleGraphApp
-The Argyle Graph App
+# Argyle Graph App
+Welcome to the Argyle Graph App!  This application is based on a series of samples.  You can check them out here:
+1. [Getting Started](https://aka.ms/aadv2)
+2. [Code Samples](https://github.com/azure-samples/)
 
-# Notes
-https://github.com/microsoftgraph/msgraph-sdk-javascript
-https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core#installation
-https://blog.valeconsulting.co.uk/wp-content/uploads/2019/05/warnunusedteams.txt
-https://docs.microsoft.com/en-us/graph/use-the-api
-https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview
 
-https://stackoverflow.com/questions/6084360/using-node-js-as-a-simple-web-server
+
+Licensed under the MIT License (the "License");

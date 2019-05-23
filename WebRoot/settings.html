@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Argyle Graph App</title>
+
+    <!-- Load JQuery -->
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+
+    <!-- Load MS Msal Info -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.0/js/msal.js"></script>
+
+    <!-- Load MS Graph SDK-->
+    <script type="text/javascript" src="https://unpkg.com/@microsoft/microsoft-graph-client@1.0.0/lib/graph-js-sdk-web.js"></script>
+
+    <!-- Bootstrap (https://getbootstrap.com/) 
+    <link rel="stylesheet" href="/styles/bootstrap/bootstrap.min.css" crossorigin="anonymous" />
+    <script src="/javascript/bootstrap/bootstrap.min.js" crossorigin="anonymous"></script>
+    -->
+
+    <!-- Cookie -->
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+</head>
+
+<body>
+
+    Set Cookies<br />
+    Client ID: <input type="text" id="clientID" /><br />
+    Tenant ID: <input type="text" id="tenantID" ><br />
+    <button type="button" id="btnSaveAppValues">Save</button>
+
+    <script>
+        $(document.body).on('click', '#btnSaveAppValues', function () {
+            var ClientID = $('#clientID').val();
+            var TenantID = $('#tenantID').val();
+            Cookies.set("ClientID", ClientID);
+            Cookies.set("TenantID", TenantID);
+            $(location).attr("href", "index.html");
+        });
+    </script>
+
+</body>
+</html>
