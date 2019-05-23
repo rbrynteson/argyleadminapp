@@ -3,8 +3,8 @@
   "license": "MIT",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.12.3",
-    "morgan": "^1.5.2",
+    "express": "^4.17.0",
+    "morgan": "^1.9.1",
     "path": "^0.11.14"
   }
 }

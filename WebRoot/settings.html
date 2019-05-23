@@ -3,8 +3,58 @@
 <head>
     <title>Argyle Graph App</title>
 
+    <!-- Bootstrap (https://getbootstrap.com/) -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+    <!-- jsGrid -->
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+
+    <style>
+        body {
+            padding-top: 4.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#">Argyle Admin App</a>
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="settings.html">Settings</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/rbrynteson/argyleadminapp" target="_blank">GitHub</a>
+            </li>
+        </ul>
+    </nav>
+
+    <main role="main" class="container">
+        <label style="font-weight: bold;">Set Variables</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="clientID" style="width: 100px;">Client ID</label>
+            </div>
+            <input type="text" class="form-control" id="clientID" aria-describedby="input-group-prepend" required>
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="tenantID" style="width: 100px;">Tenant ID</label>
+            </div>
+            <input type="text" class="form-control" id="tenantID" aria-describedby="input-group-prepend" required>
+        </div>
+        <button type="button" id="btnSaveAppValues">Save</button>
+    </main>
+
     <!-- Load JQuery -->
-    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 
     <!-- Load MS Msal Info -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
@@ -13,34 +63,33 @@
     <!-- Load MS Graph SDK-->
     <script type="text/javascript" src="https://unpkg.com/@microsoft/microsoft-graph-client@1.0.0/lib/graph-js-sdk-web.js"></script>
 
-    <!-- Bootstrap (https://getbootstrap.com/) 
-    <link rel="stylesheet" href="/styles/bootstrap/bootstrap.min.css" crossorigin="anonymous" />
-    <script src="/javascript/bootstrap/bootstrap.min.js" crossorigin="anonymous"></script>
-    -->
-
     <!-- Cookie -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
 
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-</head>
+    <!-- Bootstrap (https://getbootstrap.com/) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script> 
 
-<body>
+    <!-- jsGrid -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
 
-    Set Cookies<br />
-    Client ID: <input type="text" id="clientID" /><br />
-    Tenant ID: <input type="text" id="tenantID" ><br />
-    <button type="button" id="btnSaveAppValues">Save</button>
+    <!-- Moment JS -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
 
     <script>
+        // Get Values of Client and Tenant ID.  If null, 
+        var ClientID = Cookies.get("ClientID");
+        var TenantID = Cookies.get("TenantID");
+        if (typeof(ClientID)  !== "undefined") { $('#clientID').val(Cookies.get("ClientID")); }
+        if (typeof(TenantID)  !== "undefined") { $('#tenantID').val(Cookies.get("TenantID")); }
+
         $(document.body).on('click', '#btnSaveAppValues', function () {
             var ClientID = $('#clientID').val();
             var TenantID = $('#tenantID').val();
             Cookies.set("ClientID", ClientID);
             Cookies.set("TenantID", TenantID);
-            $(location).attr("href", "index.html");
+            $(location).attr("href", "/");
         });
     </script>
-
 </body>
 </html>

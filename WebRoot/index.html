@@ -3,8 +3,57 @@
 <head>
     <title>Argyle Graph App</title>
 
+    <!-- Bootstrap (https://getbootstrap.com/) -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+    <!-- jsGrid -->
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+
+    <style>
+        body {
+            padding-top: 4.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#">Argyle Admin App</a>
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="settings.html">Settings</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/rbrynteson/argyleadminapp" target="_blank">GitHub</a>
+            </li>
+        </ul>
+    </nav>
+
+    <main role="main" class="container">
+        <div class="float-right">
+            <button id="SignIn" onclick="signIn()">Sign In</button>
+            <button id="Teams" onclick="TeamList()" style="display: none;">Load Team List</button>
+            <button id="Grid" onclick="ShowGrid()" style="display: none;">Create Grid</button>
+        </div>
+        <div>
+            <p id="WelcomeMessage">Welcome to the Argyle Admin App.</p> 
+        </div>
+        <div>
+            <pre id="teamList"></pre>
+            <pre id="json"></pre>
+        </div>
+        <div id="teamsList"></div>
+    </main>
+
     <!-- Load JQuery -->
-    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 
     <!-- Load MS Msal Info -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
@@ -13,30 +62,19 @@
     <!-- Load MS Graph SDK-->
     <script type="text/javascript" src="https://unpkg.com/@microsoft/microsoft-graph-client@1.0.0/lib/graph-js-sdk-web.js"></script>
 
-    <!-- Bootstrap (https://getbootstrap.com/) 
-    <link rel="stylesheet" href="/styles/bootstrap/bootstrap.min.css" crossorigin="anonymous" />
-    <script src="/javascript/bootstrap/bootstrap.min.js" crossorigin="anonymous"></script>
-    -->
-
     <!-- Cookie -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
 
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-</head>
+    <!-- Bootstrap (https://getbootstrap.com/) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script> 
 
-<body>
-    <div class="container">
-        <div class="leftContainer">
-            <p id="WelcomeMessage">Welcome to the Microsoft Authentication Library For Javascript Quickstart</p>
-            <button id="SignIn" onclick="signIn()">Sign In</button>
-            <button id="Teams" onclick="TeamList()">Get Team List</button>
-        </div>
-        <div class="rightContainer">
-            <pre id="teamList"></pre>
-            <pre id="json"></pre>
-        </div>
-    </div>
+    <!-- jsGrid -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+
+    <!-- Moment JS -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+
     <script>
         // Get Values of Client and Tenant ID.  If null, 
         var ClientID = Cookies.get("ClientID");
@@ -44,13 +82,35 @@
         if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined") { $(location).attr("href", "settings.html"); } 
 
         // Object to Store Channel Results
-        function ChannelList(teamID, teamName, channelID, channelName, lastPostedMessage, lastPostedFile) {
+        function Channels(teamID, teamName, channelID, channelName, lastPostedMessage, lastPostedFile) {
             this.teamID = teamID;
             this.teamName = teamName;
             this.channelID = channelID;
             this.channelName = channelName;
             this.lastPostedMessage = lastPostedMessage;
             this.lastPostedFile = lastPostedFile;
+        }
+        var ChannelList = [];
+
+        function ShowGrid() {
+            $("#teamsList").jsGrid({
+                width: "100%",
+        
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: false,
+                filtering: false,
+        
+                data: ChannelList,
+        
+                fields: [
+                    { name: "teamName", title: "Team Name", type: "text" },
+                    { name: "channelName", title: "Channel Name",type: "text" },
+                    { name: "lastPostedMessage", title: "Last Message Date",type: "text" },
+                    { name: "lastPostedFile", title: "Last File Date",type: "text" }
+                ]
+            });
         }
 
         // Web Call
@@ -132,7 +192,9 @@
             for (i = 0; i < x; i++) {
                 var cid = data.value[i].id;
                 var cname = data.value[i].displayName;
-                var result = new ChannelList(teamID, teamName, cid, cname, "", "");
+                var result = new Channels(teamID, teamName, cid, cname, "", "");
+                
+                ChannelList.push(result);
                 getTeamChannelLastPost(result);
             }
         }
@@ -169,9 +231,9 @@
         function callbackLastMessagePosted(result, data) {
             var x = data.value.length;
             for (i = 0; i < x; i++) {
-                result.lastPostedMessage = data.value[i].createdDateTime;
-                //console.log(result);
-                $("#teamList").append(JSON.stringify(result, null, 2));
+                var lastPostDate = moment(data.value[i].createdDateTime).format("M/D/YYYY hh:mm:ss A");
+                result.lastPostedMessage = lastPostDate;
+                
             }
         }
 
@@ -239,11 +301,18 @@
         }
 
         function showWelcomeMessage() {
+            //Message
             var divWelcome = document.getElementById('WelcomeMessage');
-            divWelcome.innerHTML = "Welcome " + myMSALObj.getAccount().userName + " to Microsoft Graph API";
+            divWelcome.innerHTML = "Welcome " + myMSALObj.getAccount().name + " to AAA.";
+
+            //Login Button
             var loginbutton = document.getElementById('SignIn');
             loginbutton.innerHTML = 'Sign Out';
             loginbutton.setAttribute('onclick', 'signOut();');
+
+            //Show Button
+            $("#Teams").show();
+            $("#Grid").show();
         }
 
         function authRedirectCallBack(error, response) {
