@@ -15,7 +15,7 @@ var port = 30662; // process.env.PORT || 30662;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-app.use(express.static('WebRoot'))
+app.use(express.static('docs'))
 
 // Set up our one route to the index.html file.
 app.get('*', function (req, res) {
