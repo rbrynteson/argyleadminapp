@@ -16,6 +16,8 @@ Using the app requires a few things to be setup.
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-3.png "")
 4. On the Overview page, note your Client ID and Tenant ID. 
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-4.png "")
+5. Go to the Authentication and Advanced Settings and enable ID Tokens and Access Tokens is enabled
+![alt text](https://theargylemvp.com/assets/images/5-23-2019-5.png "")
 
 Once you have this data and have your app setup.  Head over to [https://app.theargylemvp.com ](https://app.theargylemvp.com ) and use one of your organizations logins to get the information.
 
