@@ -24,11 +24,11 @@
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
         <a class="navbar-brand" href="#">Argyle Admin App</a>
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
-            </li>
             <li class="nav-item">
-                <a class="nav-link" href="settings.html">Settings</a>
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="settings.html">Settings <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="https://github.com/rbrynteson/argyleadminapp" target="_blank">GitHub</a>
@@ -37,6 +37,13 @@
     </nav>
 
     <main role="main" class="container">
+        <div class="jumbotron">
+            <h4>What are these?</h4>
+            <p class="lead">
+                Below you specify your Client ID and Tenant ID.  We are going to save these as session cookies which will go away when you close the browser.  The Client ID will still require you to login with organizational credentials when setup correctly.  This site doesn't store anything.  Check out the source code or fork it and host yourself if worried.
+            </p>
+        </div>
+
         <label style="font-weight: bold;">Set Variables</label>
         <div class="input-group mb-3">
             <div class="input-group-prepend">

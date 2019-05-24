@@ -39,8 +39,7 @@
     <main role="main" class="container">
         <div class="float-right">
             <button id="SignIn" onclick="signIn()">Sign In</button>
-            <button id="Teams" onclick="TeamList()" style="display: none;">Load Team List</button>
-            <button id="Grid" onclick="ShowGrid()" style="display: none;">Create Grid</button>
+            <button id="Teams" onclick="RunTeamsCode()" style="display: none;">Load Team List</button>
         </div>
         <div>
             <p id="WelcomeMessage">Welcome to the Argyle Admin App.</p> 
@@ -50,10 +49,15 @@
             <pre id="json"></pre>
         </div>
         <div id="teamsList"></div>
+        <div style="width: 100%; text-align: center;">
+            <div class="spinner-border text-info" id="LoadingWindow" role="status" style="display: none;">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
     </main>
 
     <!-- Load JQuery -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 
     <!-- Load MS Msal Info -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
@@ -80,6 +84,12 @@
         var ClientID = Cookies.get("ClientID");
         var TenantID = Cookies.get("TenantID");
         if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined") { $(location).attr("href", "settings.html"); } 
+
+        // Determine End Reached
+        var NumChannelsToProcess = 0;
+        var NumChannelsProcessed = 0;
+        var NumMessageToProcess = 0;
+        var NumMessagesProcessed = 0;
 
         // Object to Store Channel Results
         function Channels(teamID, teamName, channelID, channelName, lastPostedMessage, lastPostedFile) {
@@ -120,6 +130,15 @@
             XmlHttp.send();
         }
 
+        function bob() {
+
+        }
+
+        function RunTeamsCode() {
+            $("#LoadingWindow").show();
+            TeamList();
+        }
+
         ////// TEAMS
         // Get List of Teams
         function TeamList() {
@@ -136,6 +155,7 @@
                 }
             });
         }
+        
 
         // Get List of Teams - Web Call
         function callTeamList(theUrl, accessToken, callback) {
@@ -187,8 +207,11 @@
         }
 
         // Loop Channels Results.  
+        var myVar;
         function callbackChannelList(teamID, teamName, data) {
             var x = data.value.length;
+            NumChannelsToProcess = NumChannelsToProcess + x;
+
             for (i = 0; i < x; i++) {
                 var cid = data.value[i].id;
                 var cname = data.value[i].displayName;
@@ -196,6 +219,23 @@
                 
                 ChannelList.push(result);
                 getTeamChannelLastPost(result);
+
+                NumChannelsProcessed = NumChannelsProcessed + 1;
+
+                // Display Grid Timer
+                if (NumChannelsToProcess === NumChannelsProcessed)
+                {
+                    myVar = setInterval(myTimer, 1000);
+                }
+            }
+        }
+
+        function myTimer() {
+            if (NumChannelsProcessed === NumMessagesProcessed)
+            {
+                ShowGrid();
+                $("#LoadingWindow").hide();
+                clearInterval(myVar);
             }
         }
 
@@ -230,10 +270,11 @@
         // Loop Through Last Post Results
         function callbackLastMessagePosted(result, data) {
             var x = data.value.length;
+            NumMessageToProcess = NumMessageToProcess + x;
+            NumMessagesProcessed = NumMessagesProcessed + 1;
             for (i = 0; i < x; i++) {
                 var lastPostDate = moment(data.value[i].createdDateTime).format("M/D/YYYY hh:mm:ss A");
-                result.lastPostedMessage = lastPostDate;
-                
+                result.lastPostedMessage = lastPostDate; 
             }
         }
 
@@ -303,7 +344,7 @@
         function showWelcomeMessage() {
             //Message
             var divWelcome = document.getElementById('WelcomeMessage');
-            divWelcome.innerHTML = "Welcome " + myMSALObj.getAccount().name + " to AAA.";
+            divWelcome.innerHTML = "Welcome " + myMSALObj.getAccount().name + " to Argyle Admin App.  Click the Load Teams button.";
 
             //Login Button
             var loginbutton = document.getElementById('SignIn');
