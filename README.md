@@ -9,10 +9,10 @@ Using the app requires a few things to be setup.
 2. Enter a Name, choose "accounts in this organization only" and enter https://app.theargylemvp.com as the return URL.
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-2.png "")
 3. Once created, go to API Permissions and assign the permissions as needed.
-..* ChannelMessage.Read.All (Application)
-..* Group.Read.All (Application)
-..* Group.Read.All (Delegated)
-..* User.Read (Delegated)
+* ChannelMessage.Read.All (Application)
+* Group.Read.All (Application)
+* Group.Read.All (Delegated)
+* User.Read (Delegated)
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-3.png "")
 4. On the Overview page, note your Client ID and Tenant ID. 
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-4.png "")
@@ -26,9 +26,9 @@ Want to run on your own server?
 2. Install Node [https://nodejs.org/en/](https://nodejs.org/en/).
 3. Go to the folder you just cloned/downloaded.
 4. Configure your server.
-..* npm install express
-..* npm install morgan
-..* node server.js
+* npm install express
+* npm install morgan
+* node server.js
 
 The server will run on the port defined, [http://localhost:30662](http://localhost:30662).  Important, make sure to update your Return URL to include this URL.  
 
