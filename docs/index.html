@@ -38,9 +38,7 @@
 
     <main role="main" class="container">
         <div class="float-right">
-            <button id="SignIn" onclick="signIn()">Sign In</button>
-            <button id="MyTeams" onclick="RunTeamsCode()" style="display: none;">Load My Teams</button>
-            <button id="Teams" onclick="RunAll()">Load All Teams</button>
+            <button id="Teams" onclick="RunAll()">Load Team Info</button>
         </div>
         <div>
             <p id="WelcomeMessage">Welcome to the Argyle Admin App.</p> 
@@ -59,13 +57,6 @@
 
     <!-- Load JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-
-    <!-- Load MS Msal Info -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.0/js/msal.js"></script>
-
-    <!-- Load MS Graph SDK-->
-    <script type="text/javascript" src="https://unpkg.com/@microsoft/microsoft-graph-client@1.0.0/lib/graph-js-sdk-web.js"></script>
 
     <!-- Cookie -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
@@ -87,33 +78,6 @@
         var SecretID = Cookies.get("SecretID");
         if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined" || typeof(SecretID)  === "undefined") { $(location).attr("href", "settings.html"); } 
 
-        function RunAll() {
-            $.ajax({
-                "crossDomain": true,
-                type: "POST",
-                url: "https://login.microsoftonline.com/" + TenantID + "/oauth2/v2.0/token",
-                data: {
-                    "grant_type": "client_credentials",
-                    "client_id ": ClientID,
-                    "client_secret": SecretID,
-                    "scope ": "https://graph.microsoft.com/.default"
-                },
-                contentType: "application/x-www-form-urlencoded",
-                processData: true,
-                success: function (response) {
-                    console.log(response);
-                    console.log(response.access_token);
-                }
-            });
-        }
-
-
-        // Determine End Reached
-        var NumChannelsToProcess = 0;
-        var NumChannelsProcessed = 0;
-        var NumMessageToProcess = 0;
-        var NumMessagesProcessed = 0;
-
         // Object to Store Channel Results
         function Channels(teamID, teamName, channelID, channelName, lastPostedMessage, lastPostedFile) {
             this.teamID = teamID;
@@ -124,6 +88,126 @@
             this.lastPostedFile = lastPostedFile;
         }
         var ChannelList = [];
+
+        // Determine End Reached
+        var NumChannelsToProcess = 0;
+        var NumChannelsProcessed = 0;
+        var NumMessageToProcess = 0;
+        var NumMessagesProcessed = 0;
+
+        // Main Task Process
+        function RunAll() {
+            //Get Access Token
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://cors-anywhere.herokuapp.com/https://login.microsoftonline.com/" + TenantID + "/oauth2/v2.0/token",
+                "method": "POST",
+                "headers": {
+                    "content-type": "application/x-www-form-urlencoded"
+                },
+                "data": {
+                    "grant_type": "client_credentials",
+                    "client_id ": ClientID,
+                    "client_secret": SecretID,
+                    "scope ": "https://graph.microsoft.com/.default"
+                },
+                success: function (response) {
+                    token = response.access_token;
+                    GetTeams(token);
+                }
+            })
+        }
+
+        function GetTeams(token) {
+            //Get List of Teams
+            $("#LoadingWindow").show();
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://graph.microsoft.com/beta/groups?$filter=resourceProvisioningOptions/Any(x:x eq 'Team')",
+                "method": "GET",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + token);
+                },
+                data: { },
+                success: function (response) {
+                    var x = response.value.length;
+                    for (i = 0; i < x; i++) {
+                        var id = response.value[i].id;
+                        var name = response.value[i].displayName;
+                        GetChannels(token, id, name);
+                    }
+                }
+            })
+        }
+
+        var myVar;
+        function GetChannels(token, teamID, teamName) {
+            //Get List of Channels
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://graph.microsoft.com/beta/teams/" + teamID + "/channels",
+                "method": "GET",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + token);
+                },
+                data: { },
+                success: function (response) {
+                    var x = response.value.length;
+                    NumChannelsToProcess = NumChannelsToProcess + x;
+
+                    for (i = 0; i < x; i++) {
+                        var cid = response.value[i].id;
+                        var cname = response.value[i].displayName;
+                        var result = new Channels(teamID, teamName, cid, cname, "", "");
+                        ChannelList.push(result);
+                        GetChannelLastPost(token, result);
+
+                        NumChannelsProcessed = NumChannelsProcessed + 1;
+
+                        // Display Grid Timer
+                        if (NumChannelsToProcess === NumChannelsProcessed)
+                        {
+                            myVar = setInterval(myTimer, 1000);
+                        }
+                    }
+                }
+            })
+        }
+
+        function GetChannelLastPost(token, result) {
+            //Get List of Last Post Message
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://graph.microsoft.com/beta/teams/" + result.teamID + "/channels/" + result.channelID + "/messages?$top=1",
+                "method": "GET",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + token);
+                },
+                data: { },
+                success: function (response) {
+                    var x = response.value.length;
+                    NumMessageToProcess = NumMessageToProcess + x;
+                    NumMessagesProcessed = NumMessagesProcessed + 1;
+                    for (i = 0; i < x; i++) {
+                        var lastPostDate = moment(response.value[i].createdDateTime).format("M/D/YYYY hh:mm:ss A");
+                        result.lastPostedMessage = lastPostDate; 
+                    }
+                }
+            })
+        }
+
+        function myTimer() {
+            if (NumChannelsProcessed === NumMessagesProcessed)
+            {
+                ShowGrid();
+                $("#LoadingWindow").hide();
+                clearInterval(myVar);
+            }
+        }
 
         function ShowGrid() {
             $("#teamsList").jsGrid({
@@ -146,260 +230,9 @@
             });
         }
 
-        // Web Call
-        function WebOpen(XmlHttp, URL, AccessToken) {
-            XmlHttp.open("GET", URL, true); // true for asynchronous
-            XmlHttp.setRequestHeader('Authorization', 'Bearer ' + AccessToken);
-            XmlHttp.send();
-        }
-
-        function bob() {
-
-        }
-
-        function RunTeamsCode() {
-            $("#LoadingWindow").show();
-            TeamList();
-        }
-
-        ////// TEAMS
-        // Get List of Teams
-        function TeamList() {
-            myMSALObj.acquireTokenSilent(requestObj).then(function (tokenResponse) {
-                callTeamList(graphConfig.graphTeamEndpoint, tokenResponse.accessToken, callbackTeamList);
-            }).catch(function (error) {
-                console.log(error);
-                if (requiresInteraction(error.errorCode)) {
-                    myMSALObj.acquireTokenPopup(requestObj).then(function (tokenResponse) {
-                        callTeamList(graphConfig.graphTeamEndpoint, tokenResponse.accessToken, callbackTeamList);
-                    }).catch(function (error) {
-                        console.log(error);
-                    });
-                }
-            });
-        }
-        
-
-        // Get List of Teams - Web Call
-        function callTeamList(theUrl, accessToken, callback) {
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200)
-                    callback(JSON.parse(this.responseText));
-            }
-
-            WebOpen(xmlHttp, theUrl, accessToken);
-        }
-
-        // Loop Teams Results.  Get Channels
-        function callbackTeamList(TeamListArray) {
-            var x = TeamListArray.value.length;
-            for (i = 0; i < x; i++) {
-                var id = TeamListArray.value[i].id;
-                var name = TeamListArray.value[i].displayName;
-                getTeamChannels(id, name);
-            }
-        }
-
-        //////CHANNELS
-        // Get List of Channels
-        function getTeamChannels(teamID, teamName) {
-            var url = "https://graph.microsoft.com/beta/teams/" + teamID + "/channels";
-            myMSALObj.acquireTokenSilent(requestObj).then(function (tokenResponse) {
-                callChannelList(url, tokenResponse.accessToken, teamID, teamName, callbackChannelList);
-            }).catch(function (error) {
-                console.log(error);
-                if (requiresInteraction(error.errorCode)) {
-                    myMSALObj.acquireTokenPopup(requestObj).then(function (tokenResponse) {
-                        callChannelList(graphConfig.graphTeamEndpoint, tokenResponse.accessToken, ID, callbackChannelList);
-                    }).catch(function (error) {
-                        console.log(error);
-                    });
-                }
-            });
-        }
-
-        // Get List of Channels - Web Call
-        function callChannelList(theUrl, accessToken, teamID, teamName, callback) {
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200)
-                    callback(teamID, teamName, JSON.parse(this.responseText));
-            }
-            WebOpen(xmlHttp, theUrl, accessToken);
-        }
-
-        // Loop Channels Results.  
-        var myVar;
-        function callbackChannelList(teamID, teamName, data) {
-            var x = data.value.length;
-            NumChannelsToProcess = NumChannelsToProcess + x;
-
-            for (i = 0; i < x; i++) {
-                var cid = data.value[i].id;
-                var cname = data.value[i].displayName;
-                var result = new Channels(teamID, teamName, cid, cname, "", "");
-                
-                ChannelList.push(result);
-                getTeamChannelLastPost(result);
-
-                NumChannelsProcessed = NumChannelsProcessed + 1;
-
-                // Display Grid Timer
-                if (NumChannelsToProcess === NumChannelsProcessed)
-                {
-                    myVar = setInterval(myTimer, 1000);
-                }
-            }
-        }
-
-        function myTimer() {
-            if (NumChannelsProcessed === NumMessagesProcessed)
-            {
-                ShowGrid();
-                $("#LoadingWindow").hide();
-                clearInterval(myVar);
-            }
-        }
-
-        //////GET LAST POST
-        // Get Last Message in Channel
-        function getTeamChannelLastPost(result) {
-            var url = "https://graph.microsoft.com/beta/teams/" + result.teamID + "/channels/" + result.channelID + "/messages?$top=1";
-            myMSALObj.acquireTokenSilent(requestObj).then(function (tokenResponse) {
-                callMessagePost(url, tokenResponse.accessToken, result, callbackLastMessagePosted);
-            }).catch(function (error) {
-                console.log(error);
-                if (requiresInteraction(error.errorCode)) {
-                    myMSALObj.acquireTokenPopup(requestObj).then(function (tokenResponse) {
-                        callMessagePost(graphConfig.graphTeamEndpoint, tokenResponse.accessToken, callbackLastMessagePosted);
-                    }).catch(function (error) {
-                        console.log(error);
-                    });
-                }
-            });
-        }
-
-        // Get Last Message - Web Call
-        function callMessagePost(theUrl, accessToken, result, callback) {
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200)
-                    callback(result, JSON.parse(this.responseText));
-            }
-            WebOpen(xmlHttp, theUrl, accessToken);
-        }
-
-        // Loop Through Last Post Results
-        function callbackLastMessagePosted(result, data) {
-            var x = data.value.length;
-            NumMessageToProcess = NumMessageToProcess + x;
-            NumMessagesProcessed = NumMessagesProcessed + 1;
-            for (i = 0; i < x; i++) {
-                var lastPostDate = moment(data.value[i].createdDateTime).format("M/D/YYYY hh:mm:ss A");
-                result.lastPostedMessage = lastPostDate; 
-            }
-        }
 
 
 
- 
-        // Set Keys
-        var msalConfig = {
-            auth: {
-                clientId: ClientID, 
-                authority: "https://login.microsoftonline.com/" + TenantID
-            },
-            cache: {
-                cacheLocation: "localStorage",
-                storeAuthStateInCookie: true
-            }
-        };
-
-        var graphConfig = {
-            graphMeEndpoint: "https://graph.microsoft.com/beta/me",
-            graphTeamEndpoint: "https://graph.microsoft.com/beta/groups?$filter=resourceProvisioningOptions/Any(x:x eq 'Team')"
-        };
-
-        // Initial Request For Scope
-        var requestObj = {
-            scopes: ["user.read"]
-        };
-
-        //Create User Agent Application
-        var myMSALObj = new Msal.UserAgentApplication(msalConfig);
-
-        // Register Callbacks for redirect flow
-        myMSALObj.handleRedirectCallback(authRedirectCallBack);
-
-        // Sign In-Function
-        function signIn() {
-            myMSALObj.loginPopup(requestObj).then(function (loginResponse) {
-                //Successful login
-                showWelcomeMessage();
-            }).catch(function (error) {
-                //Please check the console for errors
-                console.log(error);
-            });
-        }
-
-        function signOut() {
-            myMSALObj.logout();
-        }
-
-        function callMSGraph(theUrl, accessToken, callback) {
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200)
-                    callback(JSON.parse(this.responseText));
-            }
-            WebOpen(xmlHttp, theUrl, accessToken);
-        }
-
-        function graphAPICallback(data) {
-            document.getElementById("json").innerHTML = JSON.stringify(data, null, 2);
-        }
-
-        function showWelcomeMessage() {
-            //Message
-            var divWelcome = document.getElementById('WelcomeMessage');
-            divWelcome.innerHTML = "Welcome " + myMSALObj.getAccount().name + " to Argyle Admin App.  Click the Load Teams button.";
-
-            //Login Button
-            var loginbutton = document.getElementById('SignIn');
-            loginbutton.innerHTML = 'Sign Out';
-            loginbutton.setAttribute('onclick', 'signOut();');
-
-            //Show Button
-            $("#Teams").show();
-            $("#Grid").show();
-        }
-
-        function authRedirectCallBack(error, response) {
-            if (error) {
-                console.log(error);
-            } else {
-                if (response.tokenType === "access_token") {
-                    callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, graphAPICallback);
-                } else {
-                    console.log("token type is:" + response.tokenType);
-                }
-            }
-        }
-
-        function requiresInteraction(errorCode) {
-            if (!errorCode || !errorCode.length) {
-                return false;
-            }
-            return errorCode === "consent_required" ||
-                errorCode === "interaction_required" ||
-                errorCode === "login_required";
-        }
-
-        // runs on page load, change config to try different login types to see what is best for your application
-        if (myMSALObj.getAccount()) {
-            showWelcomeMessage();
-        }
     </script>
 </body>
 </html>
