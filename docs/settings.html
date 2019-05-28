@@ -57,6 +57,12 @@
             </div>
             <input type="text" class="form-control" id="tenantID" aria-describedby="input-group-prepend" required>
         </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="secretID" style="width: 100px;">Secret</label>
+            </div>
+            <input type="text" class="form-control" id="secretID" aria-describedby="input-group-prepend" required>
+        </div>
         <button type="button" id="btnSaveAppValues">Save</button>
     </main>
 
@@ -87,14 +93,18 @@
         // Get Values of Client and Tenant ID.  If null, 
         var ClientID = Cookies.get("ClientID");
         var TenantID = Cookies.get("TenantID");
+        var SecretID = Cookies.get("SecretID");
         if (typeof(ClientID)  !== "undefined") { $('#clientID').val(Cookies.get("ClientID")); }
         if (typeof(TenantID)  !== "undefined") { $('#tenantID').val(Cookies.get("TenantID")); }
+        if (typeof(TenantID)  !== "undefined") { $('#secretID').val(Cookies.get("SecretID")); }
 
         $(document.body).on('click', '#btnSaveAppValues', function () {
             var ClientID = $('#clientID').val();
             var TenantID = $('#tenantID').val();
+            var SecretID = $('#secretID').val();
             Cookies.set("ClientID", ClientID);
             Cookies.set("TenantID", TenantID);
+            Cookies.set("SecretID", SecretID);
             $(location).attr("href", "/");
         });
     </script>

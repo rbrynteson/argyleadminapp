@@ -39,7 +39,8 @@
     <main role="main" class="container">
         <div class="float-right">
             <button id="SignIn" onclick="signIn()">Sign In</button>
-            <button id="Teams" onclick="RunTeamsCode()" style="display: none;">Load Team List</button>
+            <button id="MyTeams" onclick="RunTeamsCode()" style="display: none;">Load My Teams</button>
+            <button id="Teams" onclick="RunAll()">Load All Teams</button>
         </div>
         <div>
             <p id="WelcomeMessage">Welcome to the Argyle Admin App.</p> 
@@ -83,7 +84,29 @@
         // Get Values of Client and Tenant ID.  If null, 
         var ClientID = Cookies.get("ClientID");
         var TenantID = Cookies.get("TenantID");
-        if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined") { $(location).attr("href", "settings.html"); } 
+        var SecretID = Cookies.get("SecretID");
+        if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined" || typeof(SecretID)  === "undefined") { $(location).attr("href", "settings.html"); } 
+
+        function RunAll() {
+            $.ajax({
+                "crossDomain": true,
+                type: "POST",
+                url: "https://login.microsoftonline.com/" + TenantID + "/oauth2/v2.0/token",
+                data: {
+                    "grant_type": "client_credentials",
+                    "client_id ": ClientID,
+                    "client_secret": SecretID,
+                    "scope ": "https://graph.microsoft.com/.default"
+                },
+                contentType: "application/x-www-form-urlencoded",
+                processData: true,
+                success: function (response) {
+                    console.log(response);
+                    console.log(response.access_token);
+                }
+            });
+        }
+
 
         // Determine End Reached
         var NumChannelsToProcess = 0;
@@ -280,11 +303,7 @@
 
 
 
-        
-
-
-
-
+ 
         // Set Keys
         var msalConfig = {
             auth: {
