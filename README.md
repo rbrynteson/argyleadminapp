@@ -18,8 +18,10 @@ Using the app requires a few things to be setup.
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-4.png "")
 5. Go to the Authentication and Advanced Settings and enable ID Tokens and Access Tokens is enabled
 ![alt text](https://theargylemvp.com/assets/images/5-23-2019-5.png "")
+6. Go to the Certificates and Secrets page.  Create a new client secret and note it.  You are only showed your Client Secret once.  So make sure to not lose it or just create another one.
+![alt text](https://theargylemvp.com/assets/images/5-23-2019-6.png "")
 
-Once you have this data and have your app setup.  Head over to [https://app.theargylemvp.com ](https://app.theargylemvp.com ) and use one of your organizations logins to get the information.
+Once you have this data and have your app setup.  Head over to [https://app.theargylemvp.com ](https://app.theargylemvp.com ) and enter your Client, Tenant and Secret ID.  You should always protect your information.  Feel free to look at the source code.  Nothing you enter is stored beyond a local cookie which will be cleared after you close the browser.
 
 ## Another Option
 Want to run on your own server?
