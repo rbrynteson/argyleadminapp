@@ -115,6 +115,7 @@
         const TenantID = Cookies.get("TenantID");
         const SecretID = Cookies.get("SecretID");
         const SendGrid = Cookies.get("SendGrid");
+        const SendGridFrom = Cookies.get("SendGridFrom");
         const WebRoot = "graph.microsoft.com/beta";
         if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined" || typeof(SecretID)  === "undefined") { $(location).attr("href", "settings.html"); } 
 
@@ -362,7 +363,7 @@
                     }
                 ],
                 "from": {
-                    "email": "noreply@email.qmsnav.com"
+                    "email": SendGridFrom
                 },
                 "content": [
                     {
