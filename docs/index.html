@@ -349,39 +349,43 @@
             var Subject = $('#txtSendSubject').val();
             var Message = $('#txtSendMessage').val();
 
+            var msgData = JSON.stringify({
+            "personalizations": [
+                {
+                    "to": [
+                        {
+                        "email": "rbrynteson@brynteson.info",
+                        "name": "Richard Brynteson"
+                        }
+                    ],
+                    "subject": Subject
+                    }
+                ],
+                "from": {
+                    "email": "noreply@email.qmsnav.com"
+                },
+                "content": [
+                    {
+                    "type": "text/html",
+                    "value": Message
+                    }
+                ]
+            });
+
             //Send Message via SendGrid API
             $.ajax({
                 "async": true,
                 "crossDomain": true,
-                "url": "https://api.sendgrid.com/v3/mail/send",
+                "url": "https://cors-anywhere.herokuapp.com/https://api.sendgrid.com/v3/mail/send",
                 "method": "POST",
                 "headers": {
-                    "content-type": "application/json",
-                    "authorization": "Bearer " + SendGrid
+                    "content-type": "application/json"
                 },
-                "data": {
-                    "personalizations": [
-                    {
-                        "to": [
-                            {
-                            "email": "rbrynteson@brynteson.info"
-                            }
-                        ],
-                        "subject": Subject
-                    }
-                    ],
-                    "from": {
-                        "email": "noreply@email.qmsnav.com"
-                    },
-                    "content": [
-                        {
-                        "type": "text/plain",
-                        "value": Message
-                        }
-                    ]
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("authorization", "Bearer " + SendGrid);
                 },
-                success: function (response) {
-                    
+                "data": msgData,
+                    success: function (response) {       
                 }
             })
         }
