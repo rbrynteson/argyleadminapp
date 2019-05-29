@@ -63,6 +63,12 @@
             </div>
             <input type="text" class="form-control" id="secretID" aria-describedby="input-group-prepend" required>
         </div>
+        <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="sendGrid" style="width: 100px;">Send Grid</label>
+                </div>
+                <input type="text" class="form-control" id="sendGrid" aria-describedby="input-group-prepend" required>
+            </div>
         <button type="button" id="btnSaveAppValues">Save</button>
     </main>
 
@@ -94,17 +100,21 @@
         var ClientID = Cookies.get("ClientID");
         var TenantID = Cookies.get("TenantID");
         var SecretID = Cookies.get("SecretID");
+        var SendGrid = Cookies.get("SendGrid");
         if (typeof(ClientID)  !== "undefined") { $('#clientID').val(Cookies.get("ClientID")); }
         if (typeof(TenantID)  !== "undefined") { $('#tenantID').val(Cookies.get("TenantID")); }
-        if (typeof(TenantID)  !== "undefined") { $('#secretID').val(Cookies.get("SecretID")); }
+        if (typeof(SecretID)  !== "undefined") { $('#secretID').val(Cookies.get("SecretID")); }
+        if (typeof(SendGrid)  !== "undefined") { $('#sendGrid').val(Cookies.get("SendGrid")); }
 
         $(document.body).on('click', '#btnSaveAppValues', function () {
             var ClientID = $('#clientID').val();
             var TenantID = $('#tenantID').val();
             var SecretID = $('#secretID').val();
+            var SendGrid = $('#sendGrid').val();
             Cookies.set("ClientID", ClientID);
             Cookies.set("TenantID", TenantID);
             Cookies.set("SecretID", SecretID);
+            Cookies.set("SendGrid", SendGrid);
             $(location).attr("href", "/");
         });
     </script>

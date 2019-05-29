@@ -13,6 +13,9 @@
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
 
+    <!-- Custom CSS-->
+    <link href="/styles/overlay.css" rel="stylesheet" />
+
     <style>
         body {
             padding-top: 4.5rem;
@@ -36,7 +39,42 @@
         </ul>
     </nav>
 
-    <main role="main" class="container">
+    <!-- Custom Views-->
+    <div id="ViewTeam" class="overlay">
+        <div class="header" id="TeamName"></div>
+        <a href="javascript:void(0)" class="closebtn" onclick="CloseTeam()">&times;</a>
+        <div class="overlay-content" id="viewuser">
+            <div class="subheader">Owners</div>
+            <div id="Owners"></div>
+
+            <div class="subheader" style="padding-top: 15px;">Last Activity</div>
+            <div id="Post"></div>
+            <div id="File"></div>
+
+            <div class="subheader" style="padding-top: 15px; padding-bottom: 5px;">Send Message To Owners</div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="txtSendSubject" style="width: 100px;">Subject</label>
+                </div>
+                <input type="text" class="form-control" id="txtSendSubject" aria-describedby="input-group-prepend" required>
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="txtSendMessage" style="width: 100px;">Message</label>
+                </div>
+                <textarea type="text" class="form-control" id="txtSendMessage" aria-describedby="input-group-prepend" rows="3" required></textarea>
+            </div>
+
+            <div class="float-right">
+                <div style="padding-top: 10px;">
+                    <input class="btn btn-primary" type="button" name="btnSendMessage" value="Send Message" onclick="javascript:SendMessage();" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main role="main" class="container" id="MainContentArea">
         <div class="float-right">
             <button id="Teams" onclick="RunAll()">Load Team Info</button>
         </div>
@@ -73,9 +111,11 @@
 
     <script>
         // Get Values of Client and Tenant ID.  If null, 
-        var ClientID = Cookies.get("ClientID");
-        var TenantID = Cookies.get("TenantID");
-        var SecretID = Cookies.get("SecretID");
+        const ClientID = Cookies.get("ClientID");
+        const TenantID = Cookies.get("TenantID");
+        const SecretID = Cookies.get("SecretID");
+        const SendGrid = Cookies.get("SendGrid");
+        const WebRoot = "graph.microsoft.com/beta";
         if (typeof(ClientID)  === "undefined" || typeof(TenantID)  === "undefined" || typeof(SecretID)  === "undefined") { $(location).attr("href", "settings.html"); } 
 
         // Object to Store Channel Results
@@ -125,7 +165,7 @@
             $.ajax({
                 "async": true,
                 "crossDomain": true,
-                "url": "https://graph.microsoft.com/beta/groups?$filter=resourceProvisioningOptions/Any(x:x eq 'Team')",
+                "url": "https://" + WebRoot + "/groups?$filter=resourceProvisioningOptions/Any(x:x eq 'Team')",
                 "method": "GET",
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -148,7 +188,7 @@
             $.ajax({
                 "async": true,
                 "crossDomain": true,
-                "url": "https://graph.microsoft.com/beta/teams/" + teamID + "/channels",
+                "url": "https://" + WebRoot + "/teams/" + teamID + "/channels",
                 "method": "GET",
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -164,6 +204,7 @@
                         var result = new Channels(teamID, teamName, cid, cname, "", "");
                         ChannelList.push(result);
                         GetChannelLastPost(token, result);
+                        GetChannelLastFile(token, result);
 
                         NumChannelsProcessed = NumChannelsProcessed + 1;
 
@@ -182,7 +223,7 @@
             $.ajax({
                 "async": true,
                 "crossDomain": true,
-                "url": "https://graph.microsoft.com/beta/teams/" + result.teamID + "/channels/" + result.channelID + "/messages?$top=1",
+                "url": "https://" + WebRoot + "/teams/" + result.teamID + "/channels/" + result.channelID + "/messages?$top=1",
                 "method": "GET",
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -196,6 +237,43 @@
                         var lastPostDate = moment(response.value[i].createdDateTime).format("M/D/YYYY hh:mm:ss A");
                         result.lastPostedMessage = lastPostDate; 
                     }
+                }
+            })
+        }
+
+        function GetChannelLastFile(token, result) {
+            //Get Drive Info
+            var DriveID = "";
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://" + WebRoot + "/groups/" + result.teamID + "/drive",
+                "method": "GET",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + token);
+                },
+                data: { },
+                success: function (response) {
+                    DriveID = response.id;
+
+                    //Get Last File Post Date
+                    $.ajax({
+                        "async": true,
+                        "crossDomain": true,
+                        "url": "https://" + WebRoot + "/drives/" + DriveID + "/activities?`$top=1",
+                        "method": "GET",
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader("Authorization", "Bearer " + token);
+                        },
+                        data: { },
+                        success: function (response) {
+                            var x = response.value.length;
+                            for (i = 0; i < x; i++) {
+                                var lastFileDate = moment(response.value[i].times.recordedDateTime).format("M/D/YYYY hh:mm:ss A");
+                                result.lastPostedFile = lastFileDate; 
+                            }
+                        }
+                    })
                 }
             })
         }
@@ -221,6 +299,10 @@
         
                 data: ChannelList,
         
+                rowClick: function(args) {
+                    OpenTeam(args);
+                },
+
                 fields: [
                     { name: "teamName", title: "Team Name", type: "text" },
                     { name: "channelName", title: "Channel Name",type: "text" },
@@ -230,9 +312,103 @@
             });
         }
 
+        function Owner(displayName, mail) {
+            this.displayName = displayName;
+            this.mail = mail;
+        }
+        var Owners = [];
 
+        function GetOwners(teamID) {
+            //Empty Array & Div
+            Owners = [];
+            $("#Owners").html("");
 
+            //Get Current Owners
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://" + WebRoot + "/groups/" + teamID + "/owners",
+                "method": "GET",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + token);
+                },
+                data: { },
+                success: function (response) {
+                    var x = response.value.length;
+                    for (i = 0; i < x; i++) {
+                        var result = new Owner(response.value[i].displayName, response.value[i].mail);
+                        Owners.push(result);
 
+                        $("#Owners").append(response.value[i].displayName + " " + response.value[i].mail + "<br />");
+                    }
+                }
+            })
+        }
+
+        function SendMessage() {
+            var Subject = $('#txtSendSubject').val();
+            var Message = $('#txtSendMessage').val();
+
+            //Send Message via SendGrid API
+            $.ajax({
+                "async": true,
+                "crossDomain": true,
+                "url": "https://api.sendgrid.com/v3/mail/send",
+                "method": "POST",
+                "headers": {
+                    "content-type": "application/json",
+                    "authorization": "Bearer " + SendGrid
+                },
+                "data": {
+                    "personalizations": [
+                    {
+                        "to": [
+                            {
+                            "email": "rbrynteson@brynteson.info"
+                            }
+                        ],
+                        "subject": Subject
+                    }
+                    ],
+                    "from": {
+                        "email": "noreply@email.qmsnav.com"
+                    },
+                    "content": [
+                        {
+                        "type": "text/plain",
+                        "value": Message
+                        }
+                    ]
+                },
+                success: function (response) {
+                    
+                }
+            })
+        }
+
+        function OpenTeam(args) {
+            //Display Info
+            $("#TeamName").html(args.item.teamName);
+            $("#Post").html("Message Posted: " + args.item.lastPostedMessage);
+            $("#File").html("File Upload: " + args.item.lastPostedFile);
+
+            //Get Owners
+            GetOwners(args.item.teamID);
+
+            //Set Style and Background
+            document.getElementById("ViewTeam").style.width = "65%";
+            document.getElementsByTagName("body")[0].style.backgroundColor = "rgba(0,0,0, 0.1)";
+            document.getElementById("MainContentArea").style.color = "rgba(0,0,0, 0.2)";
+            document.getElementById("MainContentArea").style.opacity = "0.2";
+        }
+
+        function CloseTeam() {
+            //Set Style and Background
+            document.getElementById("ViewTeam").style.width = "0%";
+            document.getElementsByTagName("body")[0].style.backgroundColor = "rgba(0,0,0, 0.0)";
+            document.getElementById("MainContentArea").style.color = "rgba(0,0,0, 1.0)";
+            document.getElementById("MainContentArea").style.opacity = "1.0";
+        }
     </script>
 </body>
 </html>
